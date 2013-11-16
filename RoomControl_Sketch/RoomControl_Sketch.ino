@@ -1,22 +1,20 @@
 /* Room Control DMX */
 /* Alex Forey's home lighting automation system. 
 This part deals with the DMX controlling of LED lights, and remote control of
-power sockets. All the messages are received by serial from a Raspberry Pi, which
-is running as a HA server.
+power sockets. All the serial messages are sent from a Mac Mini Server.
 */
 
 /* Designed for the SK-Pang DMX Shield, rev E + F so DMX pin is 2  */
 
-// Include the Library
+// Include the Libraries
 #include <DmxSimple.h>
 #include <SoftwareSerial.h>
-
-SoftwareSerial portOne(6,7);
 
 // Pins for DMX Shield
 int DMX_dir = 4;
 // Status LED on shield
 int LED2 = 8;  
+// Relay Pin
 int RELAY = 7;
 
 void setup() {
@@ -29,7 +27,6 @@ void setup() {
   
   // Serial bits
   Serial.begin(9600);
-  portOne.begin(9600);
   Serial.println("RoomControl DMX Ready!");
   
   
@@ -52,6 +49,7 @@ void setChannel(int channel, int value) {
   Serial.print("Channel: ");
   Serial.println(channel);
   
+  // Deal with the relay on channel 500
   if (channel == 500) {
         if (value == 0)
           digitalWrite(RELAY, LOW);
@@ -59,74 +57,76 @@ void setChannel(int channel, int value) {
           digitalWrite(RELAY, HIGH);
   } else {
 
-  
-  // Put the old channel value from the store
-  int oldValue = store[channel];
-  
-  // Debug
-  Serial.print("Old Value:");
-  Serial.println(oldValue);
-  Serial.print("New Value:");
-  Serial.println(value);
-  
-  // We're fading to a value smaller than the previous one
-  if (oldValue > value) {
+    // Put the old channel value from the store
+    int oldValue = store[channel];
+    
     // Debug
-    Serial.print(oldValue);
-    Serial.print(" > ");
-    Serial.println(value);
+    // Serial.print("Old Value:");
+    // Serial.println(oldValue);
+    // Serial.print("New Value:");
+    // Serial.println(value);
     
-    // Turn on the status LED
-    digitalWrite(LED2, HIGH);
-    
-    // For loop between old value and new value
-    for (int x = oldValue; x > value; x--) {
+    // We're fading to a value smaller than the previous one
+    if (oldValue > value) {
+     
       // Debug
-      Serial.println(x);
+      // Serial.print(oldValue);
+      // Serial.print(" > ");
+      // Serial.println(value);
       
-      // Output the value over DMX
-      DmxSimple.write(channel, x);
+      // Turn on the status LED
+      digitalWrite(LED2, HIGH);
       
-      // Wait for a slower fade
-      delay(wait);
+      // For loop between old value and new value
+      for (int x = oldValue; x > value; x--) {
+        
+        // Debug
+        //Serial.println(x);
+        
+        // Output the value over DMX
+        DmxSimple.write(channel, x);
+        
+        // Wait for a slower fade
+        delay(wait);
+      }
+      
+      // Turn off the status LED
+      digitalWrite(LED2, LOW);
+      
+      // Store the new value for the next time it is changed
+      store[channel] = value;
     }
     
-    // Turn off the status LED
-    digitalWrite(LED2, LOW);
-    
-    // Store the new value for the next time it is changed
-    store[channel] = value;
-  }
-  // We're fading to a value larger than the previous one
-  else if (oldValue < value) {
-    // Debug
-    Serial.print(oldValue);
-    Serial.print(" < ");
-    Serial.println(value);
-    
-    // Turn on the status LED
-    digitalWrite(LED2, HIGH);
-    
-    // For loop between old value and new value
-    for (int x = oldValue; x < value; x++) {
+    // We're fading to a value larger than the previous one
+    else if (oldValue < value) {
       // Debug
-      Serial.println(x);
+      // Serial.print(oldValue);
+      // Serial.print(" < ");
+      // Serial.println(value);
       
-      // Output the value over DMX
-      DmxSimple.write(channel, x);
+      // Turn on the status LED
+      digitalWrite(LED2, HIGH);
       
-      // Wait for a slower fade
-      delay(wait);
+      // For loop between old value and new value
+      for (int x = oldValue; x < value; x++) {
+        // Debug
+        Serial.println(x);
+        
+        // Output the value over DMX
+        DmxSimple.write(channel, x);
+        
+        // Wait for a slower fade
+        delay(wait);
+      }
+      
+      // Turn off the status LED
+      digitalWrite(LED2, LOW);
+      
+      // Store the new value for the next time it is changed
+      store[channel] = value;
+      
     }
-    
-    // Turn off the status LED
-    digitalWrite(LED2, LOW);
-    
-    // Store the new value for the next time it is changed
-    store[channel] = value;
-    
   }
-}
 }
 
 void loop() {
