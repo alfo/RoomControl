@@ -67,6 +67,7 @@ class RoomControl < Sinatra::Base
     p @preset_2 = {1 => 255, 2 => 255, 3 => 0, 4 => 183, 5 => 255, 6 => 255, 7 => 0, 8 => 183}
     p @preset_3 = {1 => 255, 2 => 0, 3 => 75, 4 => 183, 5 => 255, 6 => 0, 7 => 75, 8 => 183}
     p @preset_4 = {1 => 255, 2 => 25, 3 => 0, 4 => 183, 5 => 255, 6 => 25, 7 => 0, 8 => 183}
+    p @preset_10 = {1 => 0, 2 => 0, 3 => 0, 4 => 183, 5 => 0, 6 => 0, 7 => 0, 8 => 183}
 
     Preset.create!(
       :number => 1,
@@ -83,6 +84,10 @@ class RoomControl < Sinatra::Base
     Preset.create!(
       :number => 4,
       :dmx => YAML::dump(@preset_4)
+    )
+    Preset.create!(
+      :number => 10,
+      :dmx => YAML::dump(@preset_10)
     )
   end
 end
